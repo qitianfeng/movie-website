@@ -10,7 +10,18 @@ node_modules/
 .env.test.local
 .env.production.local
 
-# Logs
+# Test scripts with API keys
+test-tmdb.ps1
+test-tmdb.bat
+start.bat
+start.sh
+
+# Debug/Report files
+DEBUG-REPORT.md
+E2E-DEBUG-LOG.md
+FIX-ATTEMPT-1-REPORT.md
+SCREENSHOT-TEST-REPORT.md
+nul
 logs
 *.log
 npm-debug.log*
