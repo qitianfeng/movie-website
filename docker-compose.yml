@@ -1,0 +1,89 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: movie-mysql
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: my_db
+      MYSQL_CHARSET: utf8mb4
+      MYSQL_COLLATION: utf8mb4_unicode_ci
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    networks:
+      - movie-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: movie-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - movie-network
+
+  # Backend API
+  backend:
+    build: ./backend
+    container_name: movie-backend
+    restart: always
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=123456
+      - DB_NAME=my_db
+      - JWT_SECRET=your-secret-key-change-this
+      - TMDB_API_KEY=${TMDB_API_KEY}
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - movie-network
+
+  # H5 Frontend
+  frontend-h5:
+    build: ./frontend-h5
+    container_name: movie-frontend-h5
+    restart: always
+    ports:
+      - "8080:4173"
+    environment:
+      - VITE_API_URL=http://localhost:3001/api/v1
+    depends_on:
+      - backend
+    networks:
+      - movie-network
+
+  # Admin Frontend
+  frontend-admin:
+    build: ./frontend-admin
+    container_name: movie-frontend-admin
+    restart: always
+    ports:
+      - "8081:4173"
+    environment:
+      - VITE_API_URL=http://localhost:3001/api/v1
+    depends_on:
+      - backend
+    networks:
+      - movie-network
+
+volumes:
+  mysql_data:
+
+networks:
+  movie-network:
+    driver: bridge
